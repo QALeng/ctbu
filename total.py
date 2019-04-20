@@ -4,7 +4,7 @@ import os
 import pymysql
 from lxml import etree
 from bs4 import BeautifulSoup
-from flask import jsonify
+from flask import jsonify,json
 import requests
 import re
 # 用于编码
@@ -433,6 +433,22 @@ def bs(keyWord,model,field,disk1,type1):
                 ret3 = re.sub('\r', "", ret2)
                 ret = re.sub('\xa0', "", ret3)
                 part.append(ret)
+        # 新增图书馆地址
+        adress_node = link_div[0].find_all('div')
+        bookID = adress_node[0].get('id')
+        bookIDNumber = bookID.replace("ebook", "")
+        url = "http://libopac.ctbu.edu.cn/opac/book/getHoldingsInformation/" + bookIDNumber + "?_=1555736259026"
+        response = requests.get(url)
+        content = response.content.decode('utf-8')
+        bs = BeautifulSoup(content, 'lxml')
+        data = json.loads(bs.text)
+        for e in data:
+            firstData = '条形码：' + e['条形码']
+            secondData='部门名称：'+e['部门名称']
+            thirdData = "书刊状态：" + e['bookstatus']
+            part.append(firstData)
+            part.append(secondData)
+            part.append(thirdData)
         total.append(part)
     global   theSameUrl
     theSameUrl=theSame
@@ -495,6 +511,22 @@ def ChangePage(page):
                     part.append(lentOthers)
             if (k != len_p):
                 part.append(each.text)
+        # 新增图书馆地址
+        adress_node = link_div[0].find_all('div')
+        bookID = adress_node[0].get('id')
+        bookIDNumber = bookID.replace("ebook", "")
+        url = "http://libopac.ctbu.edu.cn/opac/book/getHoldingsInformation/" + bookIDNumber + "?_=1555736259026"
+        response = requests.get(url)
+        content = response.content.decode('utf-8')
+        bs = BeautifulSoup(content, 'lxml')
+        data = json.loads(bs.text)
+        for e in data:
+            firstData = '条形码：' + e['条形码']
+            secondData = '部门名称：' + e['部门名称']
+            thirdData = "书刊状态：" + e['bookstatus']
+            part.append(firstData)
+            part.append(secondData)
+            part.append(thirdData)
         total.append(part)
     return jsonify({'searchResult': total,'data1':2})
 
